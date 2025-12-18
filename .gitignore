@@ -205,3 +205,12 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Ignore everything under data
+data/**
+
+# But keep the folders themselves (via .gitkeep or README)
+!data/
+!data/**/
+!data/**/.gitkeep
+!data/**/README.md

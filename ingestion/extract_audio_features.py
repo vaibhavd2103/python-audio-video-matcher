@@ -1,28 +1,36 @@
 import json
 import os
+import numpy as np
 from tqdm import tqdm
-from utils.extract_audio_features import extract_audio_features
+from utils.audio_features import extract_audio_features
 
 MANIFEST_PATH = "data/processed/manifest.json"
-OUTPUT_PATH = "data/processed/audio_features.json"
+OUT_DIR = "data/processed/audio_features"
+
+os.makedirs(OUT_DIR, exist_ok=True)
 
 with open(MANIFEST_PATH) as f:
     manifest = json.load(f)
 
-results = []
+success = 0
 
 for item in tqdm(manifest):
-    audio_path = item["audio_path"]
     video_id = item["video_id"]
+    audio_path = item["audio_path"]
+
+    out_path = os.path.join(OUT_DIR, f"{video_id}.npy")
+
+    if not os.path.exists(audio_path):
+        continue
+
+    if os.path.exists(out_path):
+        continue
 
     try:
         features = extract_audio_features(audio_path)
-        features["video_id"] = video_id
-        results.append(features)
+        np.save(out_path, features)
+        success += 1
     except Exception as e:
         print(f"❌ Failed on {video_id}: {e}")
 
-with open(OUTPUT_PATH, "w") as f:
-    json.dump(results, f, indent=2)
-
-print(f"Saved audio features for {len(results)} videos")
+print(f"✅ Saved audio features for {success} videos")

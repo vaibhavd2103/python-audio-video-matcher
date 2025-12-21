@@ -1,0 +1,5 @@
+python fetch_metadata.py
+python ingestion/download_videos.py
+python ingestion/process_videos.py
+python ingestion/extract_audio_features.py
+python ingestion/extract_video_features.py

@@ -20,7 +20,7 @@ def parse_duration(duration):
     seconds = int(match.group(2) or 0)
     return minutes * 60 + seconds
 
-def fetch_shorts_with_audio_bias(query="shorts", max_results=20):
+def fetch_shorts_with_audio_bias(query="songs shorts", max_results=30):
     request = youtube.search().list(
         part="snippet",
         q=query,

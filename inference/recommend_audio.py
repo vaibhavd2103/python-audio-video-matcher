@@ -6,6 +6,7 @@ from torch.nn.functional import cosine_similarity
 
 from models.joint_model import JointEmbeddingModel
 from utils.video_features import extract_video_embedding
+from utils.audio_features import extract_audio_features
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -36,19 +37,26 @@ def recommend_audio(video_path, top_k=5):
     model = load_model()
     audio_embeddings = load_audio_embeddings()
 
-    # ---- extract video embedding ----
-    video_emb = extract_video_embedding(video_path)
-    video_emb = torch.tensor(video_emb, dtype=torch.float32).to(DEVICE)
-    video_emb = torch.nn.functional.normalize(video_emb, dim=0)
+    # ---- extract video embedding through model ----
+    video_tensor = torch.tensor(
+        extract_video_embedding(video_path),
+        dtype=torch.float32
+    ).unsqueeze(0).to(DEVICE)
 
     scores = []
 
-    for vid, audio_emb in audio_embeddings.items():
-        audio_emb = audio_emb.to(DEVICE)
-        audio_emb = torch.nn.functional.normalize(audio_emb, dim=0)
+    for vid, audio_feat in audio_embeddings.items():
+        audio_tensor = audio_feat.unsqueeze(0).to(DEVICE)
 
-        sim = cosine_similarity(video_emb.unsqueeze(0), audio_emb.unsqueeze(0))
-        scores.append((vid, sim.item()))
+        with torch.no_grad():
+            v_emb, a_emb = model(video_tensor, audio_tensor)
+
+            v_emb = torch.nn.functional.normalize(v_emb, dim=1)
+            a_emb = torch.nn.functional.normalize(a_emb, dim=1)
+
+            sim = torch.sum(v_emb * a_emb).item()
+
+        scores.append((vid, sim))
 
     scores.sort(key=lambda x: x[1], reverse=True)
     return scores[:top_k]

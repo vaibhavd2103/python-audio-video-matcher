@@ -1,8 +1,25 @@
 import torch
-import torchvision.models as models
 import torchvision.transforms as T
 from PIL import Image
 import os
+import numpy as np
+from torchvision import models
+import cv2
+
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
+_model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+_model.fc = torch.nn.Identity()
+_model = _model.to(DEVICE)
+_model.eval()
+
+_transform = T.Compose([
+    T.ToPILImage(),
+    T.Resize((224, 224)),
+    T.ToTensor(),
+    T.Normalize(mean=[0.485, 0.456, 0.406],
+                         std=[0.229, 0.224, 0.225])
+])
 
 class VideoEmbedder:
     def __init__(self, device="cpu"):
@@ -47,3 +64,27 @@ class VideoEmbedder:
 
         # Temporal aggregation (mean pooling)
         return torch.stack(embeddings).mean(dim=0)
+
+def extract_video_embedding(video_path, max_frames=16):
+    cap = cv2.VideoCapture(video_path)
+    frames = []
+
+    while len(frames) < max_frames:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frames.append(_transform(frame))
+
+    cap.release()
+
+    if len(frames) == 0:
+        raise RuntimeError("No frames extracted from video")
+
+    frames = torch.stack(frames).to(DEVICE)
+
+    with torch.no_grad():
+        feats = _model(frames)
+        video_emb = feats.mean(dim=0)
+
+    return video_emb.cpu().numpy()

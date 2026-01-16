@@ -20,7 +20,7 @@ def parse_duration(duration):
     seconds = int(match.group(2) or 0)
     return minutes * 60 + seconds
 
-def fetch_shorts_with_audio_bias(query="bollywood songs", max_results=10):
+def fetch_shorts_with_audio_bias(query="shorts", max_results=20):
     request = youtube.search().list(
         part="snippet",
         q=query,
@@ -46,11 +46,14 @@ def fetch_shorts_with_audio_bias(query="bollywood songs", max_results=10):
         # ❌ Exclusions
         if status.get("uploadStatus") != "processed":
             continue
+        
         if status.get("privacyStatus") != "public":
             continue
-        # duration = parse_duration(content.get("duration", "PT0S"))
-        # if duration == 0 or duration > 60:
+        
+        duration = parse_duration(content.get("duration", "PT0S"))
+        if duration == 0 or duration > 60:
             continue  # Exclude videos longer than 1 minute
+        
         # if not content.get("hasAudio", True):
         #     continue  # Exclude videos without audio
 

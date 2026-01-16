@@ -1,5 +1,5 @@
-python fetch_metadata.py
-python ingestion/download_videos.py
-python ingestion/process_videos.py
-python ingestion/extract_audio_features.py
-python ingestion/extract_video_features.py
+python -m ingestion.fetch_metadata
+python -m ingestion.download_videos
+python -m ingestion.process_videos
+python -m ingestion.extract_audio_features
+python -m ingestion.extract_video_features

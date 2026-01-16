@@ -4,7 +4,7 @@ import cv2
 def extract_frames(
     video_path: str,
     output_dir: str,
-    fps: int = 1,
+    fps: int = 2,
     max_frames: int = 30
 ) -> int:
     """

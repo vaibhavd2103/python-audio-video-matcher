@@ -45,7 +45,7 @@ def main():
     
     # Step 7: Optional - Serve the model via FastAPI
     print("Starting the API server...")
-    run_command("uvicorn api.app:app --reload ")
+    run_command("uvicorn api.app:app --reload")
     
     print("API server is running.")
 

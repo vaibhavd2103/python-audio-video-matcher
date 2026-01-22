@@ -82,10 +82,18 @@ Once the ingestion pipeline is complete, the next step is to train the model. Th
 To serve the trained model via an API, you can run the backend server manually or `run_project.py` will automatically run the backend for serving it locally. To run manually:
 
 ```bash
-uvicorn app.main:app --reload
+uvicorn api.app:app --reload
 ```
 
 This will start the API server, which can be accessed at `http://127.0.0.1:8000`.
+
+### Step 4: Start the Frontend Server
+
+To start the frontend server, run the following command:
+
+```bash
+streamlit run frontend/app.py
+```
 
 ---
 

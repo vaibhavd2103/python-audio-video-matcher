@@ -12,7 +12,7 @@ loader = DataLoader(dataset, batch_size=16, shuffle=True)
 model = JointEmbeddingModel().to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
-for epoch in range(10):
+for epoch in range(200):
     model.train()
     total_loss = 0
 

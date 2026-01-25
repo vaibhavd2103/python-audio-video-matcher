@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import os
 
-VIDEO_ID = "your_video_id_here"
+VIDEO_ID = "6dNh0Vp6JH8"
 
 video_emb = torch.load(f"data/processed/video_features/{VIDEO_ID}.pt")
 

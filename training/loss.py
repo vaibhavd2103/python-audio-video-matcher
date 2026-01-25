@@ -8,13 +8,15 @@ def engagement_contrastive_loss(v, a, engagement, temperature=0.07):
     logits = torch.matmul(v, a.T) / temperature
     labels = torch.arange(len(v), device=v.device)
 
-    base_loss = F.cross_entropy(logits, labels)
+    # Per-sample losses so we can weight by engagement.
+    loss_v_to_a = F.cross_entropy(logits, labels, reduction="none")
+    loss_a_to_v = F.cross_entropy(logits.T, labels, reduction="none")
 
-    # Engagement weighting (higher engagement → higher importance)
-    weights = engagement / engagement.mean()
-    weighted_loss = (base_loss * weights.mean())
+    # Engagement weighting (higher engagement => higher importance)
+    weights = engagement / (engagement.mean() + 1e-8)
+    weighted = (loss_v_to_a + loss_a_to_v) * weights
 
-    return weighted_loss
+    return weighted.mean()
 
 
 # import torch

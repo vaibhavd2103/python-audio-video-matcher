@@ -40,19 +40,19 @@ def load_engine():
 def recommend_audio(video_path: str, top_k: int = 5):
     model, audio_features = load_engine()
 
-    # ---- video → embedding via model ----
+    # ---- video to embedding via model ----
     video_feat = extract_video_embedding(video_path)
     video_tensor = torch.tensor(video_feat).unsqueeze(0).to(DEVICE)
 
     results = []
 
     with torch.no_grad():
+        v_emb = model.video_proj(video_tensor)
+        v_emb = torch.nn.functional.normalize(v_emb, dim=1)
+
         for audio_id, audio_tensor in audio_features.items():
-            v_emb, a_emb = model(video_tensor, audio_tensor.unsqueeze(0))
-
-            v_emb = torch.nn.functional.normalize(v_emb, dim=1)
+            a_emb = model.audio_proj(audio_tensor.unsqueeze(0))
             a_emb = torch.nn.functional.normalize(a_emb, dim=1)
-
             score = torch.sum(v_emb * a_emb).item()
             results.append((audio_id, score))
 

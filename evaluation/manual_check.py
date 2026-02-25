@@ -3,7 +3,7 @@ import numpy as np
 import os
 from models.joint_model import JointEmbeddingModel
 
-VIDEO_ID = "8r6KiemOdRM"
+VIDEO_ID = "2p505HY-AKQ"
 MODEL_PATH = "models/joint_model.pt"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 

@@ -65,7 +65,7 @@ class VideoEmbedder:
         # Temporal aggregation (mean pooling)
         return torch.stack(embeddings).mean(dim=0)
 
-def extract_video_embedding(video_path, max_frames=16):
+def extract_video_embedding(video_path, max_frames=30):
     cap = cv2.VideoCapture(video_path)
     frames = []
 

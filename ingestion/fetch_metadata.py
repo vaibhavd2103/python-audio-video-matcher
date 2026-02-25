@@ -20,51 +20,63 @@ def parse_duration(duration):
     seconds = int(match.group(2) or 0)
     return minutes * 60 + seconds
 
-def fetch_shorts_with_audio_bias(query="songs shorts", max_results=30):
-    request = youtube.search().list(
-        part="snippet",
-        q=query,
-        type="video",
-        videoDuration="short",
-        maxResults=max_results,
-        # order="viewCount"
-    )
-    response = request.execute()
-    video_ids = [item["id"]["videoId"] for item in response["items"]]
+def fetch_shorts_with_audio_bias(query="songs shorts", max_results=300):
+    # The Search API caps maxResults to 50 per request; paginate to reach max_results.
+    video_ids = []
+    next_page_token = None
 
-    details = youtube.videos().list(
-        part="statistics,contentDetails,status",
-        id=",".join(video_ids)
-    ).execute()
+    while len(video_ids) < max_results:
+        batch_size = min(50, max_results - len(video_ids))
+        request = youtube.search().list(
+            part="snippet",
+            q=query,
+            type="video",
+            videoDuration="short",
+            maxResults=batch_size,
+            pageToken=next_page_token,
+            # order="viewCount"
+        )
+        response = request.execute()
+        video_ids.extend(item["id"]["videoId"] for item in response.get("items", []))
+        next_page_token = response.get("nextPageToken")
+        if not next_page_token:
+            break
 
     results = []
 
-    for item in details["items"]:
-        status = item["status"]
-        content = item["contentDetails"]
+    for i in range(0, len(video_ids), 50):
+        chunk = video_ids[i:i + 50]
+        details = youtube.videos().list(
+            part="statistics,contentDetails,status",
+            id=",".join(chunk)
+        ).execute()
 
-        # ❌ Exclusions
-        if status.get("uploadStatus") != "processed":
-            continue
-        
-        if status.get("privacyStatus") != "public":
-            continue
-        
-        duration = parse_duration(content.get("duration", "PT0S"))
-        if duration == 0 or duration > 60:
-            continue  # Exclude videos longer than 1 minute
-        
-        # if not content.get("hasAudio", True):
-        #     continue  # Exclude videos without audio
+        for item in details.get("items", []):
+            status = item["status"]
+            content = item["contentDetails"]
 
-        stats = item["statistics"]
+            # Exclusions
+            if status.get("uploadStatus") != "processed":
+                continue
 
-        results.append({
-            "video_id": item["id"],
-            "views": int(stats.get("viewCount", 0)),
-            "likes": int(stats.get("likeCount", 0)),
-            "comments": int(stats.get("commentCount", 0)),
-        })
+            if status.get("privacyStatus") != "public":
+                continue
+
+            duration = parse_duration(content.get("duration", "PT0S"))
+            if duration == 0 or duration > 60:
+                continue  # Exclude videos longer than 1 minute
+
+            # if not content.get("hasAudio", True):
+            #     continue  # Exclude videos without audio
+
+            stats = item.get("statistics", {})
+
+            results.append({
+                "video_id": item["id"],
+                "views": int(stats.get("viewCount", 0)),
+                "likes": int(stats.get("likeCount", 0)),
+                "comments": int(stats.get("commentCount", 0)),
+            })
 
     return results
 

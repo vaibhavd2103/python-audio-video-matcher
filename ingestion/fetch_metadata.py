@@ -20,7 +20,7 @@ def parse_duration(duration):
     seconds = int(match.group(2) or 0)
     return minutes * 60 + seconds
 
-def fetch_shorts_with_audio_bias(query="songs shorts", max_results=300):
+def fetch_shorts_with_audio_bias(query="songs shorts", max_results=30):
     # The Search API caps maxResults to 50 per request; paginate to reach max_results.
     video_ids = []
     next_page_token = None
